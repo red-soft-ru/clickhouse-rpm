@@ -1,0 +1,155 @@
+#
+# RPM build specification file for Yandex ClickHouse DBMS
+#
+# Copyright (C) 2016 Red Soft LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+Summary: Yandex ClickHouse DBMS
+Name: clickhouse
+Version: @CH_VERSION@
+Release: 1
+License: Apache License 2.0
+Group: Applications/Databases
+Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
+Url: https://clickhouse.yandex/
+BuildRoot: %{_tmppath}/%{name}-%{version}-build
+
+%description
+ClickHouse is an open-source column-oriented database management
+system that allows generating analytical data reports in real time.
+
+%package server-common
+Summary: Common configuration files for %{name}
+
+%description server-common
+This package contains common configuration files for ClickHouse DBMS.
+
+%package server
+Summary: %{name} server binary
+
+%description server
+This package contains server binaries for ClickHouse DBMS.
+
+%package client
+Summary: %{name} client binary
+
+%description client
+This package contains client binary for ClickHouse DBMS.
+
+%package compressor
+Summary: %{name} compressor binary
+
+%description compressor
+This package contains compressor utility for ClickHouse DBMS.
+
+%prep
+%setup -q -n ClickHouse-%{version}-@CH_TAG@
+sed -i -e s/libtermcap.a// dbms/src/Client/CMakeLists.txt
+sed -i -e s/libanl.a/anl/ contrib/libpoco/Net/CMakeLists.txt
+
+%build
+rm -rf build
+mkdir build
+cd build
+cmake ..
+make %{?_smp_mflags}
+cd ..
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+DAEMONS="compressor clickhouse-client clickhouse-server"
+
+cd build
+for daemon in $DAEMONS; do\
+	DESTDIR=$RPM_BUILD_ROOT cmake -DCOMPONENT=$daemon -P cmake_install.cmake;\
+done
+cd ..
+
+# Create cron file (same code as in debian/rules)
+for I in $RPM_BUILD_ROOT/etc/init.d/*; \
+do \
+	cron_name=`basename $I`; \
+	if [ ! -d $RPM_BUILD_ROOT/etc/cron.d ]; then \
+		mkdir -p $RPM_BUILD_ROOT/etc/cron.d; \
+	fi; \
+	if [ ! -f $RPM_BUILD_ROOT/etc/cron.d/$cron_name ]; then \
+	echo "#*/10 * * * * root /etc/init.d/$cron_name condstart 1>/dev/null 2>&1" > $RPM_BUILD_ROOT/etc/cron.d/$cron_name; \
+	fi; \
+done
+
+mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clickhouse/headers
+debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
+./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post compressor
+mkdir -p /etc/compressor/conf.d
+chown -R metrika: /etc/compressor
+
+%post server
+if [ $1 = 1 ]; then
+    /sbin/chkconfig --add clickhouse-server
+fi
+
+useradd -p "" metrika ||:
+
+if id metrika > /dev/null 2>&1; then
+	mkdir -p /opt/clickhouse/data/default/
+	mkdir -p /opt/clickhouse/metadata/default/
+	mkdir -p /opt/cores/
+	chown metrika: /opt/clickhouse /opt/cores /opt/clickhouse/data /opt/clickhouse/metadata /opt/clickhouse/data/default /opt/clickhouse/metadata/default
+	# Очистка старых результатов динамической компиляции.
+	if [ -d "/opt/clickhouse/build" ]; then
+		rm -f /opt/clickhouse/build/*.cpp /opt/clickhouse/build/*.so ||:
+	fi
+else
+	echo "User metrika doesn't exist."
+	exit 1
+fi
+
+%preun server
+if [ $1 = 0 ]; then
+    /sbin/service clickhouse-server stop > /dev/null 2>&1
+    /sbin/chkconfig --del clickhouse-server
+fi
+
+%postun server
+if [ $1 -ge 1 ]; then
+    /sbin/service clickhouse-server restart >/dev/null 2>&1
+fi
+
+%files server-common
+/etc/clickhouse-server/config.xml
+/etc/clickhouse-server/users.xml
+
+%files server
+/etc/cron.d/clickhouse-server
+/etc/init.d/clickhouse-server
+/etc/security/limits.d/metrika.conf
+/usr/bin/clickhouse-server
+/usr/share/clickhouse
+
+%files client
+/etc/clickhouse-client/config.xml
+/usr/bin/clickhouse-client
+
+%files compressor
+/usr/bin/compressor
+
+%changelog
+* Mon Nov 14 2016 Nikolay Samofatov <nikolay.samofatov@red-soft.biz> 
+- create spec file
