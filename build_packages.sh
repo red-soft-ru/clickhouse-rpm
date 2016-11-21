@@ -46,7 +46,7 @@ if [ $RHEL_VERSION == 6 ]; then
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES=libmount-devel
+  DISTRO_PACKAGES="libmount-devel libffi-devel"
 fi
 
 # Install development packages
