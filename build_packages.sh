@@ -66,7 +66,7 @@ if [ $RHEL_VERSION == 7 ]; then
   wget http://ftp.gnome.org/pub/gnome/sources/glib/2.50/glib-2.50.0.tar.xz
   tar xf glib-2.50.0.tar.xz
   cd glib-2.50.0
-  ./configure
+  ./configure --enable-static
   if ! make -j $THREADS; then exit 1; fi
   sudo make install
   cd ..
