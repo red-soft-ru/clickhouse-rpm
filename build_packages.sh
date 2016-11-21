@@ -42,11 +42,11 @@ mkdir lib
 cd lib
 
 if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES = glib2-static
+  DISTRO_PACKAGES=glib2-static
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES = libmount-devel
+  DISTRO_PACKAGES=libmount-devel
 fi
 
 # Install development packages
