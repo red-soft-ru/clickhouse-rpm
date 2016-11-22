@@ -1,6 +1,12 @@
 #
 # Yandex ClickHouse DBMS build script for RHEL based distributions
 #
+# Important notes:
+#  - build requires ~36 GB of disk space
+#  - each build thread requires 2 GB of RAM - for example, if you
+#    have dual-core CPU with 4 threads you need 8 GB of RAM
+#  - build user needs to have sudo priviledges, preferrably with NOPASSWD
+#
 # Tested on:
 #  - GosLinux IC4
 #  - CentOS 6.8
@@ -20,10 +26,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Version that we package
+# Git version of ClickHouse that we package
 CH_VERSION=1.1.54046
 
-# Tag marker (stable/testing)
+# Git tag marker (stable/testing)
 CH_TAG=stable
 
 # Detect number of threads
