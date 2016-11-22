@@ -47,6 +47,10 @@ fi
 
 if [ $RHEL_VERSION == 7 ]; then
   DISTRO_PACKAGES="libmount-devel libffi-devel"
+
+  # Connect EPEL repository for CentOS 7 (for scons)
+  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  if ! sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm; then exit 1; fi
 fi
 
 # Install development packages
