@@ -48,21 +48,24 @@ mkdir lib
 cd lib
 
 if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES=glib2-static
+  DISTRO_PACKAGES="glib2-static scons"
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
   DISTRO_PACKAGES="libmount-devel libffi-devel"
-
-  # Connect EPEL repository for CentOS 7 (for scons)
-  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm; then exit 1; fi
 fi
 
 # Install development packages
 if ! sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel glibc-static scons git wget openssl-devel m4
+  unixODBC-devel subversion python-devel glibc-static git wget openssl-devel m4
 then exit 1
+fi
+
+if [ $RHEL_VERSION == 7 ]; then
+  # Connect EPEL repository for CentOS 7 (for scons)
+  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  if ! sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm; then exit 1; fi
+  if ! sudo yum -y install scons; then exit 1; fi
 fi
 
 # Install MySQL static client library from Oracle
