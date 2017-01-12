@@ -95,9 +95,9 @@ sudo make install
 cd ../..
 
 # Install ZLib
-wget http://zlib.net/zlib-1.2.8.tar.gz
-tar xf zlib-1.2.8.tar.gz
-cd zlib-1.2.8
+wget http://zlib.net/zlib-1.2.10.tar.gz
+tar xf zlib-1.2.10.tar.gz
+cd zlib-1.2.10
 ./configure
 if ! make -j $THREADS; then exit 1; fi
 sudo make install
