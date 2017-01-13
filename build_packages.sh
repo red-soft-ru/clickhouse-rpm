@@ -50,17 +50,11 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 # Determine RHEL major version
 RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oraclelinux|goslinux)-release(|-server|-workstation|-client|-computenode)'`
 
-# Clean up after previous runs
-function do_cleanup {
-  rm -f rpm/*.zip
-  sudo rm -rf lib/*
-}
+function prepare_dependencies {
 
-function do_init {
-  mkdir lib
-}
+mkdir lib
 
-function do_prep_deps {
+sudo rm -rf lib/*
 
 cd lib
 
@@ -220,6 +214,11 @@ cd ..
 
 function make_packages {
 
+# Clean up after previous run
+rm -f ~/rpmbuild/RPMS/x86_64/clickhouse*
+rm -f ~/rpmbuild/SRPMS/clickhouse*
+rm -f rpm/*.zip
+
 # Configure RPM build environment
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 echo '%_topdir %(echo $HOME)/rpmbuild
@@ -246,10 +245,8 @@ function publish_packages {
   if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$RHEL_VERSION && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$RHEL_VERSION"; then exit 1; fi
 }
 
-do_init
 if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
-  do_cleanup
-  do_prep_deps
+  prepare_dependencies
 fi
 if [ "$1" != "publish_only" ]; then
   make_packages
