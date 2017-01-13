@@ -15,6 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# CentOS 7 would force ".el7.centos", we want to avoid that.
+%if 0%{?rhel} != 0
+%define dist .el%{rhel}
+%endif
+
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
@@ -69,7 +74,7 @@ cd ..
 %install
 rm -rf $RPM_BUILD_ROOT
 
-DAEMONS="compressor clickhouse-client clickhouse-server"
+DAEMONS="clickhouse compressor clickhouse-client clickhouse-server"
 
 cd build
 for daemon in $DAEMONS; do\
@@ -141,6 +146,7 @@ fi
 /etc/init.d/clickhouse-server
 /etc/security/limits.d/metrika.conf
 /usr/bin/clickhouse-server
+/usr/bin/clickhouse
 /usr/share/clickhouse
 
 %files client
@@ -151,5 +157,7 @@ fi
 /usr/bin/compressor
 
 %changelog
+* Fri Jan 13 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
+- update for 1.1.54127
 * Mon Nov 14 2016 Nikolay Samofatov <nikolay.samofatov@red-soft.biz> 
 - create spec file
