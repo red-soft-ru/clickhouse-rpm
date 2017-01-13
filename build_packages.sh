@@ -32,6 +32,15 @@ CH_VERSION=1.1.54046
 # Git tag marker (stable/testing)
 CH_TAG=stable
 
+# SSH username used to publish built packages
+REPO_USER=clickhouse
+
+# Hostname of the server used to publish packages
+REPO_SERVER=10.81.1.162
+
+# Root directory for repositories on the remote server
+REPO_ROOT=/var/www/html/repos/clickhouse
+
 # Detect number of threads
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
 
@@ -42,9 +51,17 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oraclelinux|goslinux)-release(|-server|-workstation|-client|-computenode)'`
 
 # Clean up after previous runs
-rm -f rpm/*.zip
-sudo rm -rf lib
-mkdir lib
+function do_cleanup {
+  rm -f rpm/*.zip
+  sudo rm -rf lib/*
+}
+
+function do_init {
+  mkdir lib
+}
+
+function do_prep_deps {
+
 cd lib
 
 if [ $RHEL_VERSION == 6 ]; then
@@ -57,7 +74,7 @@ fi
 
 # Install development packages
 if ! sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel glibc-static git wget openssl-devel m4
+  unixODBC-devel subversion python-devel glibc-static git wget openssl-devel m4 createrepo
 then exit 1
 fi
 
@@ -199,6 +216,10 @@ cd ../..
 
 cd ..
 
+}
+
+function make_packages {
+
 # Configure RPM build environment
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 echo '%_topdir %(echo $HOME)/rpmbuild
@@ -213,3 +234,26 @@ cp *.zip ~/rpmbuild/SOURCES
 rpmbuild -bs clickhouse.spec
 CC=gcc-6 CXX=g++-6 rpmbuild -bb clickhouse.spec
 
+}
+
+function publish_packages {
+  mkdir /tmp/clickhouse-repo
+  rm -rf /tmp/clickhouse-repo/*
+  cp ~/rpmbuild/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
+  if ! createrepo /tmp/clickhouse-repo; then exit 1; fi
+
+  if ! scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo; then exit 1; fi
+  if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$RHEL_VERSION && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$RHEL_VERSION"; then exit 1; fi
+}
+
+do_init
+if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
+  do_cleanup
+  do_prep_deps
+fi
+if [ "$1" != "publish_only" ]; then
+  make_packages
+fi
+if [ "$1" == "publish_only" ]; then
+  publish_packages
+fi
