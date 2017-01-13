@@ -18,7 +18,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 1
+Release: 1%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
