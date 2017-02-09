@@ -102,6 +102,7 @@ debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
 rm -rf $RPM_BUILD_ROOT
 
 %post compressor
+useradd -p "" metrika ||:
 mkdir -p /etc/compressor/conf.d
 chown -R metrika: /etc/compressor
 
