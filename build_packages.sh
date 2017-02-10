@@ -27,7 +27,7 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION=1.1.54127
+CH_VERSION=1.1.54159
 
 # Git tag marker (stable/testing)
 CH_TAG=stable
@@ -59,78 +59,32 @@ sudo rm -rf lib/*
 cd lib
 
 if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES="glib2-static scons"
+  DISTRO_PACKAGES="scons"
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES="libmount-devel libffi-devel"
+  DISTRO_PACKAGES=""
 fi
 
 # Install development packages
 if ! sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel glibc-static git wget openssl-devel m4 createrepo
+  unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
+  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel
 then exit 1
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
   # Connect EPEL repository for CentOS 7 (for scons)
   wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm; then exit 1; fi
+  sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
   if ! sudo yum -y install scons; then exit 1; fi
 fi
 
-# Install MySQL static client library from Oracle
+# Install MySQL client library from Oracle
 wget http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
 sudo yum -y --nogpgcheck install mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
 if ! sudo yum -y install mysql-community-devel; then exit 1; fi
 sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
-
-# Install GLib2
-if [ $RHEL_VERSION == 7 ]; then
-  wget http://ftp.gnome.org/pub/gnome/sources/glib/2.50/glib-2.50.0.tar.xz
-  tar xf glib-2.50.0.tar.xz
-  cd glib-2.50.0
-  ./configure --enable-static
-  if ! make -j $THREADS; then exit 1; fi
-  sudo make install
-  cd ..
-fi
-
-# Install ICU
-wget http://download.icu-project.org/files/icu4c/58.1/icu4c-58_1-src.tgz
-tar xf icu4c-58_1-src.tgz
-cd icu/source
-./configure --enable-static
-if ! make -j $THREADS; then exit 1; fi
-sudo make install
-cd ../..
-
-# Install ZLib
-wget http://zlib.net/zlib-1.2.11.tar.gz
-tar xf zlib-1.2.11.tar.gz
-cd zlib-1.2.11
-./configure
-if ! make -j $THREADS; then exit 1; fi
-sudo make install
-cd ..
-
-# Install libtool
-wget ftp://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.gz
-tar xf libtool-2.4.6.tar.gz
-cd libtool-2.4.6
-./configure
-if ! make -j $THREADS; then exit 1; fi
-sudo make install
-cd ..
-
-# Install OpenSSL 1.0.1
-wget https://www.openssl.org/source/openssl-1.0.1u.tar.gz
-tar xf openssl-1.0.1u.tar.gz
-cd openssl-1.0.1u
-./config --prefix=/usr/local
-if ! make -j $THREADS; then exit 1; fi
-sudo make install
-cd ..
 
 # Install cmake
 wget https://cmake.org/files/v3.7/cmake-3.7.0.tar.gz

@@ -60,8 +60,6 @@ This package contains compressor utility for ClickHouse DBMS.
 
 %prep
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
-sed -i -e s/libtermcap.a// dbms/src/Client/CMakeLists.txt
-sed -i -e s/libanl.a/anl/ contrib/libpoco/Net/CMakeLists.txt
 
 %build
 rm -rf build
@@ -155,9 +153,11 @@ fi
 /usr/bin/clickhouse-client
 
 %files compressor
-/usr/bin/compressor
+/usr/bin/clickhouse-compressor
 
 %changelog
+* Fri Feb 10 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
+- update for 1.1.54159
 * Fri Jan 13 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
 - update for 1.1.54127
 * Mon Nov 14 2016 Nikolay Samofatov <nikolay.samofatov@red-soft.biz> 
