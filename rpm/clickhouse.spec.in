@@ -80,48 +80,38 @@ for daemon in $DAEMONS; do\
 done
 cd ..
 
-# Create cron file (same code as in debian/rules)
-for I in $RPM_BUILD_ROOT/etc/init.d/*; \
-do \
-	cron_name=`basename $I`; \
-	if [ ! -d $RPM_BUILD_ROOT/etc/cron.d ]; then \
-		mkdir -p $RPM_BUILD_ROOT/etc/cron.d; \
-	fi; \
-	if [ ! -f $RPM_BUILD_ROOT/etc/cron.d/$cron_name ]; then \
-	echo "#*/10 * * * * root /etc/init.d/$cron_name condstart 1>/dev/null 2>&1" > $RPM_BUILD_ROOT/etc/cron.d/$cron_name; \
-	fi; \
-done
-
 mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
 ./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
+
+cp -r %{_builddir}/%{buildsubdir}/tools/etc/* %{buildroot}/etc/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post compressor
-useradd -p "" metrika ||:
+useradd -p "" clickhouse ||:
 mkdir -p /etc/compressor/conf.d
-chown -R metrika: /etc/compressor
+chown -R clickhouse: /etc/compressor
 
 %post server
 if [ $1 = 1 ]; then
     /sbin/chkconfig --add clickhouse-server
 fi
 
-useradd -p "" metrika ||:
+useradd -p "" clickhouse ||:
 
-if id metrika > /dev/null 2>&1; then
+if id clickhouse > /dev/null 2>&1; then
 	mkdir -p /opt/clickhouse/data/default/
 	mkdir -p /opt/clickhouse/metadata/default/
 	mkdir -p /opt/cores/
-	chown metrika: /opt/clickhouse /opt/cores /opt/clickhouse/data /opt/clickhouse/metadata /opt/clickhouse/data/default /opt/clickhouse/metadata/default
+	chown clickhouse: /opt/clickhouse /opt/cores /opt/clickhouse/data /opt/clickhouse/metadata /opt/clickhouse/data/default /opt/clickhouse/metadata/default
 	# Очистка старых результатов динамической компиляции.
 	if [ -d "/opt/clickhouse/build" ]; then
 		rm -f /opt/clickhouse/build/*.cpp /opt/clickhouse/build/*.so ||:
 	fi
 else
-	echo "User metrika doesn't exist."
+	echo "User clickhouse doesn't exist."
 	exit 1
 fi
 
@@ -143,7 +133,7 @@ fi
 %files server
 /etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
-/etc/security/limits.d/metrika.conf
+/etc/security/limits.d/clickhouse.conf
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse
 /usr/share/clickhouse
