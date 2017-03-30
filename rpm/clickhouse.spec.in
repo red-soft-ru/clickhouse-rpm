@@ -23,7 +23,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 2%{?dist}
+Release: 1%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
@@ -64,8 +64,8 @@ This package contains compressor utility for ClickHouse DBMS.
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
 CH_VERSION=@CH_VERSION@
 CH_VERSION_ARR=(${CH_VERSION//./ })
-sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g" libs/libcommon/cmake/version.cmake
-sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" libs/libcommon/cmake/version.cmake
+sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g" dbms/cmake/version.cmake
+sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
 %build
 rm -rf build
