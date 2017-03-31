@@ -23,7 +23,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 1%{?dist}
+Release: 3%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
@@ -100,8 +100,8 @@ CLICKHOUSE_USER=clickhouse
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --disabled-login --no-create-home --home /nonexistent \
-		--shell /bin/false --group --gecos "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home /nonexistent \
+		--shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
 fi
 
 mkdir -p /etc/compressor/conf.d
@@ -127,8 +127,8 @@ CLICKHOUSE_SERVER_ETCDIR=/etc/clickhouse-server
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --disabled-login --no-create-home --home /nonexistent \
-		--shell /bin/false --group --gecos "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home /nonexistent \
+		--shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
 fi
 
 # if the user was created manually, make sure the group is there as well
@@ -219,6 +219,8 @@ fi
 /usr/bin/clickhouse-compressor
 
 %changelog
+* Fri Mar 31 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
+- fix issue #5 - error with creating clickhouse user
 * Wed Mar 01 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
 - update for 1.1.54165
 * Fri Feb 10 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
