@@ -97,6 +97,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post compressor
 CLICKHOUSE_USER=clickhouse
+CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
@@ -105,7 +106,7 @@ if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
 fi
 
 mkdir -p /etc/compressor/conf.d
-chown -R clickhouse: /etc/compressor
+chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 
 %post server
 if [ $1 = 1 ]; then
