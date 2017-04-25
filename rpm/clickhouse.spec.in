@@ -68,11 +68,14 @@ sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g" dbms
 sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
 %build
+export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 rm -rf build
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE:STRING=Release
 make %{?_smp_mflags}
+make check
 cd ..
 
 %install
@@ -87,8 +90,8 @@ done
 cd ..
 
 mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clickhouse/headers
-debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
-./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
+#debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
+#./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 
 cp -r %{_builddir}/%{buildsubdir}/tools/etc/* %{buildroot}/etc/
 
