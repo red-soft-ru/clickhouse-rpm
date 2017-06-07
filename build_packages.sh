@@ -12,7 +12,7 @@
 #  - CentOS 6.8
 #  - CentOS 7.2
 #
-# Copyright (C) 2016 Red Soft LLC
+# Copyright (C) 2016, 2017 Red Soft LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,25 +60,10 @@ sudo rm -rf lib/*
 
 cd lib
 
-if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES="scons"
-fi
-
-if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES=""
-fi
-
 # Install development packages
-sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
+sudo yum -y install rpm-build redhat-rpm-config gcc-c++ readline-devel\
+  unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo\
   libicu-devel zlib-devel libtool-ltdl-devel
-
-if [ $RHEL_VERSION == 7 ]; then
-  # Connect EPEL repository for CentOS 7 (for scons)
-  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-  sudo yum -y install scons
-fi
 
 # Install MySQL client library from Oracle
 wget http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
@@ -136,12 +121,6 @@ cd boost_1_62_0
 ./bootstrap.sh
 ./b2 --toolset=gcc-6 -j $THREADS
 sudo PATH=$PATH ./b2 install --toolset=gcc-6 -j $THREADS
-cd ..
-
-# Install mongoclient from Git repo
-git clone -b legacy https://github.com/mongodb/mongo-cxx-driver.git
-cd mongo-cxx-driver
-sudo PATH=$PATH scons --c++11 --release --cc=$CC --cxx=$CXX --ssl=0 --disable-warnings-as-errors -j $THREADS --prefix=/usr/local install
 cd ..
 
 # Install Clang from Subversion repo
