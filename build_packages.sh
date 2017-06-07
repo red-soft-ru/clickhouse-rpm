@@ -26,20 +26,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 # Git version of ClickHouse that we package
-CH_VERSION=1.1.54236
+CH_VERSION="${CH_VERSION:-1.1.54236}"
 
 # Git tag marker (stable/testing)
-CH_TAG=stable
+CH_TAG="${CH_TAG:-stable}"
 
 # SSH username used to publish built packages
-REPO_USER=clickhouse
+REPO_USER="${REPO_USER:-clickhouse}"
 
 # Hostname of the server used to publish packages
-REPO_SERVER=10.81.1.162
+REPO_SERVER="${REPO_SERVER:-10.81.1.162}"
 
 # Root directory for repositories on the remote server
-REPO_ROOT=/var/www/html/repos/clickhouse
+REPO_ROOT="${REPO_ROOT:-/var/www/html/repos/clickhouse}"
 
 # Detect number of threads
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -67,23 +69,21 @@ if [ $RHEL_VERSION == 7 ]; then
 fi
 
 # Install development packages
-if ! sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
+sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
   unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
-  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel
-then exit 1
-fi
+  libicu-devel zlib-devel libtool-ltdl-devel
 
 if [ $RHEL_VERSION == 7 ]; then
   # Connect EPEL repository for CentOS 7 (for scons)
   wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
   sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y install scons; then exit 1; fi
+  sudo yum -y install scons
 fi
 
 # Install MySQL client library from Oracle
 wget http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
 sudo yum -y --nogpgcheck install mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
-if ! sudo yum -y install mysql-community-devel; then exit 1; fi
+sudo yum -y install mysql-community-devel
 sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
 # Install cmake
@@ -91,7 +91,7 @@ wget https://cmake.org/files/v3.7/cmake-3.7.0.tar.gz
 tar xf cmake-3.7.0.tar.gz
 cd cmake-3.7.0
 ./configure
-if ! make -j $THREADS; then exit 1; fi
+make -j $THREADS
 sudo make install
 cd ..
 
@@ -101,7 +101,7 @@ if [ $RHEL_VERSION == 6 ]; then
   tar xf Python-2.7.12.tar.xz
   cd Python-2.7.12
   ./configure
-  if ! make -j $THREADS; then exit 1; fi
+  make -j $THREADS
   sudo make altinstall
   cd ..
 fi
@@ -115,7 +115,7 @@ cd ..
 mkdir gcc-build
 cd gcc-build
 ../gcc-6.2.0/configure --enable-languages=c,c++ --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible --disable-multilib
-if ! make -j $THREADS; then exit 1; fi
+make -j $THREADS
 sudo make install
 hash gcc g++
 gcc --version
@@ -133,15 +133,15 @@ export CXX=g++-6
 wget http://downloads.sourceforge.net/project/boost/boost/1.62.0/boost_1_62_0.tar.bz2
 tar xf boost_1_62_0.tar.bz2
 cd boost_1_62_0
-if ! ./bootstrap.sh; then exit 1; fi
-if ! ./b2 --toolset=gcc-6 -j $THREADS; then exit 1; fi
+./bootstrap.sh
+./b2 --toolset=gcc-6 -j $THREADS
 sudo PATH=$PATH ./b2 install --toolset=gcc-6 -j $THREADS
 cd ..
 
 # Install mongoclient from Git repo
 git clone -b legacy https://github.com/mongodb/mongo-cxx-driver.git
 cd mongo-cxx-driver
-if ! sudo PATH=$PATH scons --c++11 --release --cc=$CC --cxx=$CXX --ssl=0 --disable-warnings-as-errors -j $THREADS --prefix=/usr/local install; then exit 1; fi
+sudo PATH=$PATH scons --c++11 --release --cc=$CC --cxx=$CXX --ssl=0 --disable-warnings-as-errors -j $THREADS --prefix=/usr/local install
 cd ..
 
 # Install Clang from Subversion repo
@@ -157,7 +157,7 @@ cd ../..
 mkdir build
 cd build/
 cmake -D CMAKE_BUILD_TYPE:STRING=Release ../llvm -DCMAKE_CXX_LINK_FLAGS="-Wl,-rpath,/usr/local/lib64 -L/usr/local/lib64"
-if ! make -j $THREADS; then exit 1; fi
+make -j $THREADS
 sudo make install
 hash clang
 cd ../..
@@ -193,10 +193,10 @@ function publish_packages {
   mkdir /tmp/clickhouse-repo
   rm -rf /tmp/clickhouse-repo/*
   cp ~/rpmbuild/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
-  if ! createrepo /tmp/clickhouse-repo; then exit 1; fi
+  createrepo /tmp/clickhouse-repo
 
-  if ! scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo; then exit 1; fi
-  if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$RHEL_VERSION && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$RHEL_VERSION"; then exit 1; fi
+  scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo
+  ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$RHEL_VERSION && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$RHEL_VERSION"
 }
 
 if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
