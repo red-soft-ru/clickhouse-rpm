@@ -129,8 +129,7 @@ cd llvm
 svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_390/final llvm
 cd llvm/tools
 svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_390/final clang
-cd ..
-cd projects/
+cd ../projects/
 svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_390/final compiler-rt
 cd ../..
 mkdir build
@@ -139,9 +138,7 @@ cmake -D CMAKE_BUILD_TYPE:STRING=Release ../llvm -DCMAKE_CXX_LINK_FLAGS="-Wl,-rp
 make -j $THREADS
 sudo make install
 hash clang
-cd ../..
-
-cd ..
+cd ../../..
 
 }
 
