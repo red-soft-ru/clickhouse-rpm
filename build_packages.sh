@@ -54,7 +54,9 @@ RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oracle
 
 function prepare_dependencies {
 
-mkdir lib
+if [ ! -d lib ]; then
+  mkdir lib
+fi
 
 sudo rm -rf lib/*
 
@@ -66,10 +68,13 @@ sudo yum -y install rpm-build redhat-rpm-config gcc-c++ readline-devel\
   libicu-devel zlib-devel libtool-ltdl-devel
 
 # Install MySQL client library from Oracle
-wget http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
-sudo yum -y --nogpgcheck install mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
+if ! rpm --query mysql57-community-release; then
+  sudo yum -y --nogpgcheck install http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
+fi
 sudo yum -y install mysql-community-devel
-sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+if [ ! -e /usr/lib64/libmysqlclient.a ]; then
+  sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+fi
 
 # Install cmake
 wget https://cmake.org/files/v3.7/cmake-3.7.0.tar.gz
