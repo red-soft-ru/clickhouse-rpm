@@ -109,10 +109,10 @@ make -j $THREADS
 sudo make install
 hash gcc g++
 gcc --version
-sudo ln -s /usr/local/bin/gcc /usr/local/bin/gcc-6
-sudo ln -s /usr/local/bin/g++ /usr/local/bin/g++-6
-sudo ln -s /usr/local/bin/gcc /usr/local/bin/cc
-sudo ln -s /usr/local/bin/g++ /usr/local/bin/c++
+sudo ln -f -s /usr/local/bin/gcc /usr/local/bin/gcc-6
+sudo ln -f -s /usr/local/bin/g++ /usr/local/bin/g++-6
+sudo ln -f -s /usr/local/bin/gcc /usr/local/bin/cc
+sudo ln -f -s /usr/local/bin/g++ /usr/local/bin/c++
 cd ..
 
 # Use GCC 6 for builds
