@@ -23,7 +23,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
@@ -104,11 +104,17 @@ rm -rf $RPM_BUILD_ROOT
 %post compressor
 CLICKHOUSE_USER=clickhouse
 CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
+CLICKHOUSE_DATADIR=/var/lib/clickhouse
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --no-create-home --home /nonexistent \
-		--shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
+fi
+
+# if the user was created manually, make sure the group is there as well
+if ! getent group ${CLICKHOUSE_GROUP} > /dev/null; then
+	addgroup --system ${CLICKHOUSE_GROUP} > /dev/null
 fi
 
 mkdir -p /etc/compressor/conf.d
@@ -134,8 +140,8 @@ CLICKHOUSE_SERVER_ETCDIR=/etc/clickhouse-server
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --no-create-home --home /nonexistent \
-		--shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
 fi
 
 # if the user was created manually, make sure the group is there as well
@@ -226,6 +232,8 @@ fi
 /usr/bin/clickhouse-compressor
 
 %changelog
+* Thu Jun 08 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
+- fix issue #9
 * Tue Jun 06 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
 - update for 1.1.54236
 * Fri Mar 31 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
