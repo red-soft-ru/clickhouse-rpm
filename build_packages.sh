@@ -171,7 +171,9 @@ CC=gcc-6 CXX=g++-6 rpmbuild -bb clickhouse.spec
 }
 
 function publish_packages {
-  mkdir /tmp/clickhouse-repo
+  if [ ! -d /tmp/clickhouse-repo ]; then
+    mkdir /tmp/clickhouse-repo
+  fi
   rm -rf /tmp/clickhouse-repo/*
   cp ~/rpmbuild/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
   createrepo /tmp/clickhouse-repo
