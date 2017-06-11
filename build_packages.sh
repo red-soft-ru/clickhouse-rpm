@@ -162,9 +162,7 @@ echo '%_topdir %(echo $HOME)/rpmbuild
 # Create RPM packages
 cd rpm
 sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ clickhouse.spec.in > clickhouse.spec
-wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
-mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
-cp *.zip ~/rpmbuild/SOURCES
+wget -O ~/rpmbuild/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
 rpmbuild -bs clickhouse.spec
 CC=gcc-6 CXX=g++-6 rpmbuild -bb clickhouse.spec
 
