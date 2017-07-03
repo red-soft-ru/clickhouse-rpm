@@ -132,11 +132,8 @@ cd ..
 mkdir llvm
 cd llvm
 svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_390/final llvm
-cd llvm/tools
-svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_390/final clang
-cd ../projects/
-svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_390/final compiler-rt
-cd ../..
+svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_390/final llvm/tools/clang
+svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_390/final llvm/projects/compiler-rt
 mkdir build
 cd build/
 cmake -D CMAKE_BUILD_TYPE:STRING=Release ../llvm -DCMAKE_CXX_LINK_FLAGS="-Wl,-rpath,/usr/local/lib64 -L/usr/local/lib64"
